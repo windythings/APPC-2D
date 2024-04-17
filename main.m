@@ -1,13 +1,13 @@
 clear
 close all
 
-vecAng = 30;
-alpha = 10;
-CT = 1.5;
+vecAng = 45;
+alpha = 6;
+CT = 1;
 
 surfaceFiles{1} = sprintf('Airfoils/ONR-Coords/mainVec%d.dat',vecAng);
-surfaceFiles{2} = sprintf('Airfoils/ONR-Coords/nacelleVec%d.dat',vecAng);
-surfaceFiles{3} = 'Airfoils/ONR-Coords/krueger.dat';
+surfaceFiles{2} = sprintf('Airfoils/ONR-Coords/nacelleMod%d.dat',vecAng);
+% surfaceFiles{3} = 'Airfoils/ONR-Coords/krueger.dat';
 
 for i = length(surfaceFiles):-1:1
     fileID = fopen(surfaceFiles{i});
@@ -15,7 +15,7 @@ for i = length(surfaceFiles):-1:1
     fclose(fileID);
 end
 
-options = wakeoptset(Wakesolver,'FunctionTolerance',1e-4,'Display','iter');
+options = wakeoptset(Wakesolver,'FunctionTolerance',1e-6,'Display','iter');
 [Cl,Cd,Cp,xc] = Panel2D(surfaces,alpha,CT,options);
 
 figure

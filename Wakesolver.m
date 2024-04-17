@@ -79,8 +79,8 @@ classdef Wakesolver
                 % Handle wakes crossing
                 xing = (wake.yo(1:N)-wake.yo(N+1:2*N)) > 0;
                 if any(xing) && any(~xing)
-                    wake.yo(N+2:2*N) = wake.yo(2:N) - wake.yo(1) + wake.yo(N+1);
-                    wake.dy(N+1:2*N) = wake.dy(1:N);
+                    wake.yo(2:N) = wake.yo(N+2:2*N) - wake.yo(N+1) + wake.yo(1);
+                    wake.dy(1:N) = wake.dy(N+1:2*N);
                 end
 
                 wake.yc = wake.yo + 0.5*wake.dy;
