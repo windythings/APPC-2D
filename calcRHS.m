@@ -48,7 +48,7 @@ vInfNorm_airfoil_wake = [];
 for j = 1:length(wake)-1
     for i = 1:length(surfaces)
         % Notation: Matrix Influence_on Airfoil Surface_due to Wake Surface
-        [A_airfoil_wake,~] = calcVelMatrices(surfaces(i),wake(j));
+        [A_airfoil_wake,~] = calcVelMatricesFast(surfaces(i),wake(j));
         temp = A_airfoil_wake*wake(j).gamma;
         
         % Augment the Kutta Condition at the trailing edge of the airfoil

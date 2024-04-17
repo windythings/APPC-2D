@@ -23,7 +23,7 @@ grid.m = length(gridCo);
 
 % Influence of airfoil surfaces on domain grid
 for j = 1:length(surfaces)
-    [A_grid_surf,B_grid_surf] = calcVelMatrices(grid,surfaces(j));
+    [A_grid_surf,B_grid_surf] = calcVelMatricesFast(grid,surfaces(j));
     
     if j == 1
         V = A_grid_surf*surfaces(j).gamma;
@@ -36,7 +36,7 @@ end
 
 % Influence of wake  boundaries on domain grid
 for j = 1:length(wake)-1
-    [A_grid_wake,B_grid_wake] = calcVelMatrices(grid,wake(j));
+    [A_grid_wake,B_grid_wake] = calcVelMatricesFast(grid,wake(j));
     V = V + A_grid_wake*wake(j).gamma;
     U = U + B_grid_wake*wake(j).gamma;
 end

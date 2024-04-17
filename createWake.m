@@ -42,11 +42,11 @@ for i = 1:2
     wake(i).endPoints = [coordsX,coordsY];
     
     if i == 1
-        wake(i).name = "Upper";
+        wake(i).name = "Wake Upper";
     else
-        wake(i).name = "Lower";
+        wake(i).name = "Wake Lower";
         wake(i+1).endPoints = (wake(i-1).endPoints+wake(i).endPoints)./2;
-        wake(i+1).name = "Center";
+        wake(i+1).name = "Wake Center";
     end
 end
 

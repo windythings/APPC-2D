@@ -21,7 +21,7 @@ for p = 1:length(surfaces)
     for q = 1:length(surfaces)
         influence(p,q).name = "On " + num2str(p) + " Due To " + num2str(q);
         [influence(p,q).A,influence(p,q).B] = ...
-                                  calcVelMatrices(surfaces(p),surfaces(q));
+                                  calcVelMatricesFast(surfaces(p),surfaces(q));
     end
 end
 

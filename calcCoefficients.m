@@ -18,7 +18,7 @@ for k = 1:length(surfaces)
     
     % Influence of the airfoil surfaces on each other
     for i = 1:length(surfaces)
-        [~,B_surf_surf] = calcVelMatrices(surfaces(k),surfaces(i));
+        [~,B_surf_surf] = calcVelMatricesFast(surfaces(k),surfaces(i));
         tempTang = B_surf_surf*surfaces(i).gamma;
         
         if i == 1
@@ -30,7 +30,7 @@ for k = 1:length(surfaces)
     
     % Influence of the wake boundaries
     for i = 1:length(wake)-1
-        [~,B_surf_wake] = calcVelMatrices(surfaces(k),wake(i));
+        [~,B_surf_wake] = calcVelMatricesFast(surfaces(k),wake(i));
         vTang = vTang + B_surf_wake*wake(i).gamma;
     end
     

@@ -19,7 +19,7 @@ for j = 1:length(wake)
     % airfoil surfaces, multiply by airfoil circulation to get induced
     % velocities, and add them to the wake structure.
     for i = 1:length(surfaces)
-        [A_wake_airfoil,B_wake_airfoil] = calcVelMatrices(wake(j),surfaces(i));
+        [A_wake_airfoil,B_wake_airfoil] = calcVelMatricesFast(wake(j),surfaces(i));
         
         tempNorm = A_wake_airfoil*surfaces(i).gamma;
         tempTang = B_wake_airfoil*surfaces(i).gamma;
@@ -37,7 +37,7 @@ for j = 1:length(wake)
     % wake surfaces on themselves and each other. Then multiply by wake
     % circulation to get induced velocities.
     for i = 1:length(wake)-1
-        [A_wake_wake,B_wake_wake] = calcVelMatricesWake(wake(j),wake(i));
+        [A_wake_wake,B_wake_wake] = calcVelMatricesFast(wake(j),wake(i));
 
         tempNorm = A_wake_wake*wake(i).gamma;
         tempTang = B_wake_wake*wake(i).gamma;
