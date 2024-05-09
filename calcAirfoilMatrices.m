@@ -10,8 +10,8 @@ function [A,B] = calcAirfoilMatrices(surfaces)
 %          induced velocity of a panel at another location in the domain
 
 totalMatrixSize = sum([surfaces.n]);
-colOffset = 1;
-rowOffset = 1;
+colOffset = 0;
+rowOffset = 0;
 
 A = zeros(totalMatrixSize,totalMatrixSize);
 B = zeros(totalMatrixSize,totalMatrixSize);
@@ -20,20 +20,26 @@ B = zeros(totalMatrixSize,totalMatrixSize);
 % influence on itself and the other(s). Concatenates these in the 
 % appropriate section of the large A and B matrices.
 for p = 1:length(surfaces)
+    
+    indexList = (1:surfaces(p).m)+rowOffset;
+    
     for q = 1:length(surfaces)
-        [A(rowOffset:rowOffset+surfaces(p).m-1,colOffset:colOffset+surfaces(q).m),...
-         B(rowOffset:rowOffset+surfaces(p).m-1,colOffset:colOffset+surfaces(q).m)] = ...
+        
+        colIndexList = (1:surfaces(q).n)+colOffset;
+        
+        [A(indexList,colIndexList),B(indexList,colIndexList)] = ...
                             calcVelMatricesFast(surfaces(p),surfaces(q));
         
         % Enforcing Kutta condition
         if p == q
-            A(rowOffset+surfaces(p).m,colOffset) = 1;            
-            A(rowOffset+surfaces(p).m,colOffset+surfaces(q).m) = 1;
+            A(indexList(end)+1,colIndexList(1)) = 1;            
+            A(indexList(end)+1,colIndexList(end)) = 1;
         end
         
         colOffset = colOffset + surfaces(q).n;
     end
-    colOffset = 1;
+    
+    colOffset = 0;
     rowOffset = rowOffset + surfaces(p).n;
 end
 
