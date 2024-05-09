@@ -16,11 +16,16 @@ rowOffset = 1;
 A = zeros(totalMatrixSize,totalMatrixSize);
 B = zeros(totalMatrixSize,totalMatrixSize);
 
+% For loop calculates the influence matrices for each airfoil surface's
+% influence on itself and the other(s). Concatenates these in the 
+% appropriate section of the large A and B matrices.
 for p = 1:length(surfaces)
     for q = 1:length(surfaces)
         [A(rowOffset:rowOffset+surfaces(p).m-1,colOffset:colOffset+surfaces(q).m),...
          B(rowOffset:rowOffset+surfaces(p).m-1,colOffset:colOffset+surfaces(q).m)] = ...
                             calcVelMatricesFast(surfaces(p),surfaces(q));
+        
+        % Enforcing Kutta condition
         if p == q
             A(rowOffset+surfaces(p).m,colOffset) = 1;            
             A(rowOffset+surfaces(p).m,colOffset+surfaces(q).m) = 1;
