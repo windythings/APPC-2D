@@ -38,6 +38,7 @@ for i = 1:length(controls.co)
     tempTang(i) = (gammaInf./(2.*pi)).*(theta2-theta1);
     tempNorm(i) = (gammaInf./(4.*pi)).*(log(R2./R1));
     
+    % Rotate each component vector into the local panel frame
     tmp = [cos(controls.theta(i)) sin(controls.theta(i));-sin(controls.theta(i)) cos(controls.theta(i))]*[tempTang(i);tempNorm(i)];
     tempTang(i) = tmp(1);
     tempNorm(i) = tmp(2);
