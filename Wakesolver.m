@@ -19,7 +19,7 @@ classdef Wakesolver
                 obj.(varargin{2*i-1}) = varargin{2*i};
             end
         end
-        function [gamma,wake,B] = solvewake(obj,wake,foil,AIC,RHS,chord)
+        function [gamma,wake,B] = solvewake(obj,wake,foil,Ainv,RHS,chord)
             % Calculates the global circulation solution according to the Shollenberger algorithm:
             %   1. Guess initial wake shape and bound circulation
             %   2. Calculate induced velocities on the airfoil surfaces due to the wake
@@ -60,7 +60,7 @@ classdef Wakesolver
                 % Solve for the airfoil circulation
                 [A,B] = influence(foil,wake);
                 RH = [A*wake.G; -wake.G([1 N+2]); zeros(nSurf-2,1)];
-                gamma = AIC \ (RHS - RH);
+                gamma = Ainv*(RHS - RH);
 
                 % Calculate induced velocities on the wake panels
                 [A1,B1] = influence(wake,foil);

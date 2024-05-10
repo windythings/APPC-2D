@@ -92,7 +92,7 @@ wake.theta = zeros(size(wake.xo));
 wake.G = [Ginf+zeros(N+1,1); -Ginf+zeros(N+1,1)];
 
 % Solve for the wake shape and global circulation solution
-[foil.G,wake,BB] = solvewake(wakeoptions,wake,foil,AIC,RHS,CHORD);
+[foil.G,wake,BB] = solvewake(wakeoptions,wake,foil,inv(AIC),RHS,CHORD);
 
 % Extract results from the solution
 Qtan = B*foil.G + BB*wake.G + cos(foil.theta); % surface tangent velocity
@@ -103,5 +103,5 @@ Cd = Cp.'*foil.dy;
 Cp = mat2cell(Cp,foil.m);
 xc = mat2cell(foil.xc*cos(alpha)-foil.yc*sin(alpha),foil.m); % undo AOA rotation
 
-if strcmpi(opts.plot,'none') return; end
+if strcmpi(opts.plot,'none'), return; end
 pltC(surfaces,foil,wake,opts);
