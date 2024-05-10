@@ -181,21 +181,21 @@ function graf = pltC(surfaces,foil,wake,opts)
         cnt = 0;
         for i = 1:length(lineobj)
             % Identify and set style for streamlines in the jet flow
-            [in,on] = inpolygon(lineobj(i).XData(end),lineobj(i).YData(end), ...
+            XYData = get(lineobj(i),{'XData','YData'});
+            [in,on] = inpolygon(XYData{1}(end),XYData{2}(end), ...
                 wake.xo([(1:N) (2*N:-1:N+1)]),wake.yo([(1:N) (2*N:-1:N+1)]));
             if in || on
-                lineobj(i).Color = [0.8353 0.3686 0];
-                lineobj(i).LineStyle = '--';
+                set(lineobj(i),'Color',[0.8353 0.3686 0],'LineStyle','--');
                 cnt = cnt + 1;
                 wline = i;
             end
         end
         % Reduce density of streamlines outside of the jet streamtube
         for i = wline-cnt-1:-2:1
-            lineobj(i).LineStyle = 'none';
+            set(lineobj(i),'LineStyle','none');
         end
         for i = wline+2:2:length(lineobj)
-            lineobj(i).LineStyle = 'none';
+            set(lineobj(i),'LineStyle','none');
         end
         % Plot airfoil surfaces on top
         for i = 1:nSurf
