@@ -22,27 +22,24 @@ y1 = wake.endPoints(end,2);
 
 gammaInf = wake.gammaInf;
 
+xc = controls.co(:,1);
+yc = controls.co(:,2);
+
+theta1 = atan2((yc-y1),(xc-x1));
+theta2 = atan2((yc-y1),(xc-x2));
+
+R2 = ((xc-x2).^2)+((yc-y1).^2);
+R1 = ((xc-x1).^2)+((yc-y1).^2);
+
 % Solving the potential flow equations for lines of constant vorticty
 % yields the following relations for velocities they induce. tempNorm and
 % tempTang are velocity components relative to panels.
-for i = 1:length(controls.co)
-    xc = controls.co(i,1);
-    yc = controls.co(i,2);
-    
-    theta1 = atan2((yc-y1),(xc-x1));
-    theta2 = atan2((yc-y1),(xc-x2));
-    
-    R2 = ((xc-x2).^2)+((yc-y1).^2);
-    R1 = ((xc-x1).^2)+((yc-y1).^2);
-    
-    tempTang(i) = (gammaInf./(2.*pi)).*(theta2-theta1);
-    tempNorm(i) = (gammaInf./(4.*pi)).*(log(R2./R1));
-    
-    % Rotate each component vector into the local panel frame
-    tmp = [cos(controls.theta(i)) sin(controls.theta(i));-sin(controls.theta(i)) cos(controls.theta(i))]*[tempTang(i);tempNorm(i)];
-    tempTang(i) = tmp(1);
-    tempNorm(i) = tmp(2);
-end
+tmpT = gammaInf./(2.*pi)*(theta2-theta1);
+tmpN = gammaInf./(4.*pi)*log(R2./R1);
+
+% Rotate each component vector into the local panel frame
+tempTang = cos(controls.theta).*tmpT + sin(controls.theta).*tmpN;
+tempNorm = -sin(controls.theta).*tmpT + cos(controls.theta).*tmpN;
 
 end
 
