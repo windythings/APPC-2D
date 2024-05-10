@@ -4,10 +4,12 @@ close all; clear; clc;
 
 % File definition - the surface from which the upper wake boundary emanates
 % must come first, followed by the surface from which the lower wake
-% boundary emanates. All other surfaces must follow these two. Examples
+% boundary emanates. All other surfaces must follow these two examples.
 
-surfaceFiles(1).name = './Airfoils/ONR-Coords/nacelleVec0.dat';
-surfaceFiles(2).name = './Airfoils/ONR-Coords/mainVec0.dat';
+vecAng = 0; % degrees
+
+surfaceFiles(1).name = sprintf('./Airfoils/ONR-Coords/nacelleVec%g.dat',vecAng);
+surfaceFiles(2).name = sprintf('./Airfoils/ONR-Coords/mainVec%g.dat',vecAng);
 % surfaceFiles(3).name = './Airfoils/ONR-Coords/krueger.dat';
 
 % surfaceFiles(1).name = './Airfoils/NACA-643618/nacelle.dat'; % nacelle
@@ -20,7 +22,7 @@ CT = 10; % non-dimensional thrust coefficient
 
 %% STREAMLINES/VECTORS
 f2 = figure(2);
-f2.Position = [100 100 1000 800];
+set(f2,'Position',[100 100 1000 800]);
 hold on;
 for i = 1:length(surfaces)
     plot(surfaces(i).endPoints(:,1),surfaces(i).endPoints(:,2),'k-');
@@ -73,7 +75,7 @@ color = [0 0.4470 0.7410; 0.8500 0.3250 0.0980; 0.9290 0.6940 0.1250; ...
                               0.4940 0.1840 0.5560; 0.4660 0.6740 0.1880];
 
 f3 = figure(3);
-f3.Position = [100 100 1000 800];
+set(f3,'Position',[100 100 1000 800]);
 hold on;
 set(gca, 'YDir','reverse');
 
@@ -86,19 +88,19 @@ Cn = 0;
 Ca = 0;
 Cm = 0;
 
-for i = length(surfaces):-1:1   
-    
+for i = length(surfaces):-1:1
+
     % Find the leading edge such that the airfoil upper and lower surfaces
     % can be plotted separately in different styles
     target = find(surfaces(i).co(:,1)==min(surfaces(i).co(:,1)));
-    
+
     plot((surfaces(i).co(1:target,1)),surfaces(i).CP(1:target),...
                                      'Color',color(i,:),'LineStyle','--');
     plot((surfaces(i).co(target+1:end,1)),surfaces(i).CP(target+1:end,1),...
                                      'Color',color(i,:),'LineStyle','-');
-    
+
     % Calculation of normal, axial, and moment coefficients from Cp dist.
-    for j = 1:length(surfaces(i).CP)        
+    for j = 1:length(surfaces(i).CP)
         if j <= target
             Cn = Cn + surfaces(i).CP(j).*abs(surfaces(i).DL(j).*cos(surfaces(i).theta(j)));
             Ca = Ca - surfaces(i).CP(j).*abs(surfaces(i).DL(j).*sin(surfaces(i).theta(j)));
@@ -126,4 +128,4 @@ xlabel('$$x/c$$','Interpreter','latex');
 ylabel('$$C_p$$','Interpreter','latex');
 titleStr = "$\alpha=$" + alpha + "$^\circ$, $C_T=$" + CT;
 title(titleStr,'Interpreter','latex');
- 
+

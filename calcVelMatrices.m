@@ -1,5 +1,5 @@
 function [A,B] = calcVelMatrices(surface1,surface2)
-% calcVelMatrices Calculates the A and B matrices for a set of 
+% calcVelMatrices Calculates the A and B matrices for a set of
 % collocation points defined in the 'surface1' structure, influenced by the
 % nodes of the 'surface2' structure. Inspired by the linear-strength,
 % vortex panel method given by Katz & Plotkin (2003).
@@ -30,19 +30,19 @@ for i = 1:surface1.m
         ZT=CO(i,2)-PT1(j,2);
         X2T=PT2(j,1)-PT1(j,1);
         Z2T=PT2(j,2)-PT1(j,2);
-        
+
         X=XT*cos(THS2(j))+ZT*sin(THS2(j));
         Z=-XT*sin(THS2(j))+ZT*cos(THS2(j));
         X2=X2T*cos(THS2(j))+Z2T*sin(THS2(j));
-        
+
 %       Determine radial distance and angle between corner points of jth
 %       panel and ith control point
         R1=sqrt(X^2+Z^2);
         R2=sqrt((X-X2)^2+Z^2);
         TH1=atan2(Z,X);
         TH2=atan2(Z,X-X2);
-        
-        if surface1.name == surface2.name
+
+        if strcmp(surface1.name,surface2.name)
             if i==j
                 U1L=-0.5*(X-X2)/(X2);
                 U2L=0.5*(X)/(X2);
@@ -54,21 +54,21 @@ for i = 1:surface1.m
                 W1L=-((X2-Z*(TH2-TH1))-X*log(R1/R2)+X2*log(R1/R2))/(2*pi*X2);
                 W2L=((X2-Z*(TH2-TH1))-X*log(R1/R2))/(2*pi*X2);
             end
-        else        
+        else
             U1L=-(Z*log(R2/R1)+X*(TH2-TH1)-X2*(TH2-TH1))/(2*pi*X2);
             U2L=(Z*log(R2/R1)+X*(TH2-TH1))/(2*pi*X2);
             W1L=-((X2-Z*(TH2-TH1))-X*log(R1/R2)+X2*log(R1/R2))/(2*pi*X2);
             W2L=((X2-Z*(TH2-TH1))-X*log(R1/R2))/(2*pi*X2);
         end
-        
+
 %       Rotate coordinates back from jth panel reference frame to airfoil
 %       chord frame
         U1=U1L*cos(-THS2(j))+W1L*sin(-THS2(j));
         U2=U2L*cos(-THS2(j))+W2L*sin(-THS2(j));
         W1=-U1L*sin(-THS2(j))+W1L*cos(-THS2(j));
         W2=-U2L*sin(-THS2(j))+W2L*cos(-THS2(j));
-        
-%       A(i,j) is the component of velocity normal to control 
+
+%       A(i,j) is the component of velocity normal to control
 %       point i due to panel j
 %       B(i,j) is the tangential velocity along control point i due to
 %       panel j, used after solving for gammas

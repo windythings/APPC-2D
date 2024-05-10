@@ -4,7 +4,7 @@ function [airfoil,chord] = panelAirfoils(surfaceFiles,alpha,mainSurfIndex)
 % chord line, collocation point coordinates, and the number of control
 % points. Concatenates all of the respective values for each airfoil
 % surface requested and returns a structure.
-% 
+%
 % Inputs:  surfaceFiles - a structure of file names storing coordinates
 %          alpha - the angle of attack of the lifting system to rotate by
 %          mainSurfIndex - index of main airfoil surface
@@ -18,16 +18,16 @@ R = [cos(-alpha) -sin(-alpha); sin(-alpha) cos(-alpha)];
 
 for i = 1:length(surfaceFiles)
     coords = importdata(surfaceFiles(i).name);
-    
+
     % Calculate the chord based on the main airfoil
     if i == mainSurfIndex
-        chord = abs(max(coords(:,1))); 
+        chord = abs(max(coords(:,1)));
     end
-    
+
     % Rotate all airfoil surfaces by alpha relative to the quarter chord
     center = repmat([0.25;0],1,length(coords(:,1)));
     coords = (R*(coords'-center) + center)';
-    
+
     % Populate airfoil struct with all details for paneling:
     % name - airfoil surface name
     % endPoints - panel nodes
@@ -37,7 +37,7 @@ for i = 1:length(surfaceFiles)
     %       pt2 - panel nodes set two, staggered from set one
     %        co - panel control points, midpoint between nodes
     %     theta - panel angle relative to freestream
-    airfoil(i).name = "Airfoil " + num2str(i);
+    airfoil(i).name = ['Airfoil ' num2str(i)];
     airfoil(i).endPoints = coords;
     airfoil(i).n = length(coords);
     airfoil(i).m = airfoil(i).n - 1;

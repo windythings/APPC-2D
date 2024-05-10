@@ -2,9 +2,9 @@ function [A,B] = calcVelMatricesFast(surface1,surface2)
 
 dval = pi;
 
-if surface1.name == surface2.name
+if strcmp(surface1.name,surface2.name)
     isself = true;
-    if contains(surface1.name, "Wake")
+    if ~isempty(regexp(surface1.name,'Wake.*'))
         dval = 0;
     end
 else
@@ -48,7 +48,7 @@ ua = (am.*costh - bm.*sinth)./(2*pi*x2);
 ub = (ap.*costh - bp.*sinth)./(2*pi*x2);
 va = (am.*sinth + bm.*costh)./(2*pi*x2);
 vb = (ap.*sinth + bp.*costh)./(2*pi*x2);
-  
+
 u = [ua, zeros(surface1.m,1)] + [zeros(surface1.m,1), ub];
 v = [va, zeros(surface1.m,1)] + [zeros(surface1.m,1), vb];
 

@@ -1,20 +1,20 @@
 function [surfaces,wake,iter,chord] = main(surfaceFiles,alphaDeg,CT)
-% main Main program of Aero-Propulsive Panel Code (APPC-2D). Assesses a 
-% given set of 2D aerodynamic surfaces and jet parameters to determine the 
+% main Main program of Aero-Propulsive Panel Code (APPC-2D). Assesses a
+% given set of 2D aerodynamic surfaces and jet parameters to determine the
 % interaction between the jet wake and aerodynamic surfaces. An iterative
-% scheme based on a 2D, linear vortex strength panelling method is 
-% implemented to determine the jet wake shape and strength, as well as 
+% scheme based on a 2D, linear vortex strength panelling method is
+% implemented to determine the jet wake shape and strength, as well as
 % system lift-coefficient and thrust-coefficient.
 
 % Assumptions: 2D, incompressible, inviscid, irrotational, no body forces
-% 
+%
 % Inputs: surfaceFiles - struct with names of all airfoil coordinate files
 %         alphaDeg - system angle of attack, in degrees
 %         CT - propulsive system thrust coefficient
-%         
+%
 % Outputs: surfaces - struct containing details of all surface paneling
 %          wake - struct containing details of all wake paneling
-%          CL - 
+%          CL -
 
 %% Initialize Constants
 % The default values have been found to work well with the example airfoil
@@ -41,7 +41,7 @@ uBar0 = (CT./gammaInf).*ones(N_WAKE-1,1);
 % Create initial surface struct containing all paneling details on the
 % airfoil surfaces, and calculate influence coefficient matrix.
 [surfaces,chord] = panelAirfoils(surfaceFiles,alpha,2);
-[A,~] = calcAirfoilMatrices(surfaces); 
+[A,~] = calcAirfoilMatrices(surfaces);
 
 %% Wake Panelling
 % Creates the wake (x,y) endpoints based on the surface trailing edge (x,y)
@@ -50,8 +50,8 @@ uBar0 = (CT./gammaInf).*ones(N_WAKE-1,1);
 % index 3 is the (imaginary) wake centerline.
 
 % The wake boundaries always start at the trailing edges of the first two
-% surface elements specified. 
-wakeStart = [surfaces(1).endPoints(end,:);surfaces(2).endPoints(end,:)]; 
+% surface elements specified.
+wakeStart = [surfaces(1).endPoints(end,:);surfaces(2).endPoints(end,:)];
 wake = createWake(wakeStart,N_WAKE,chord,CHORD_MULTIPLIER,...
                                                  CHORDS_RAMP,WAKE_SPACING);
 
@@ -79,10 +79,10 @@ toEnd = 0;
 
 % Set up the figure to plot the wake iteration. Axes are based on the CHORD
 % of the airfoil system, but can be adjusted as necessary. This figure is
-% closed upon completion of the main algorithm. 
+% closed upon completion of the main algorithm.
 f1 = figure(1);
 hAx = axes;
-f1.Position = [100 100 1000 800];
+set(f1,'Position',[100 100 1000 800]);
 hold on;
 axis([-chord 6.*chord -2.*chord 2.*chord]);
 axis equal;
@@ -98,19 +98,19 @@ end
 % specified constant values.
 while (iter <= MAX_ITER) && (~toEnd)
     iter = iter + 1;
-    
+
     % Wake boundaries are re-plotted with each algorithm iteration,
     % necissitating the previous iteration to be deleted.
     if iter > 1
-        delete(wakePlot1); 
+        delete(wakePlot1);
         delete(wakePlot2);
         delete(wakePlot3);
     end
-    
+
     wakePlot1 = plot(hAx,wake(1).endPoints(:,1),wake(1).endPoints(:,2),'r-');
     wakePlot2 = plot(hAx,wake(2).endPoints(:,1),wake(2).endPoints(:,2),'b-');
     wakePlot3 = plot(hAx,wake(3).endPoints(:,1),wake(3).endPoints(:,2),'g-');
-    
+
     % The iterative scheme performs the following steps to calculate the
     % final aero-propulsive solution.
     % 1. Panel the wake boundaries (panelWake.m)
@@ -123,34 +123,34 @@ while (iter <= MAX_ITER) && (~toEnd)
     % 6. Recalculate the circulation distribution on the wake boundaries
     %    based on CT and updated uBar (wakeCirculation.m)
     % 7. Change the position of the wake boundaries (iterateWakePosition.m)
-        
+
     wake = panelWake(wake);
     RHS = calcRHS(surfaces,wake);
     surfaces = calcAirfoilGamma(surfaces,A,RHS);
-    
+
     wake = calcWakeVels(wake,surfaces);
     wake = calcUBar(wake);
     wake = wakeCirculation(wake,CT,chord,CHORD_MULTIPLIER,wakeStart,...
                                               RELAX_CIRC,gamma,gammaInf);
-    wake = iterateWakePosition(wake); 
-    
+    wake = iterateWakePosition(wake);
+
     % Calculation of residuals for loop break condition and resetting of
     % gamma vector with updated wake circulation values.
     gamma(2).upper = wake(1).gamma;
     gamma(2).lower = wake(2).gamma;
-    
+
     residualUpper = sum(abs(gamma(2).upper-gamma(1).upper)./...
                                                 (N_WAKE.*abs(gammaInf)));
     residualLower = sum(abs(gamma(2).lower-gamma(1).lower)./...
                                                 (N_WAKE.*abs(gammaInf)));
-    
+
     gamma(1).upper = gamma(2).upper;
     gamma(1).lower = gamma(2).lower;
-    
+
     if (residualUpper < E_UP) && (residualLower < E_LO)
         toEnd = 1;
     end
-        
+
     % Creates "stop-motion animation" of wake shape moving
     pause(0.005);
 end
@@ -168,7 +168,7 @@ surfaces = calcAirfoilGamma(surfaces,A,RHS);
 % be misleading as vortex panel codes with no viscous modelling tend to
 % overpredict performance, sometimes drastically.
 
-[surfaces,CL] = calcCoefficients(surfaces,wake); 
+[surfaces,CL] = calcCoefficients(surfaces,wake);
 fprintf('Lift (K-J): Cl = %1.4f\n',CL);
 
 % The following is a currently unverified mathematical formulation to
