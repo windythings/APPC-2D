@@ -17,7 +17,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 /////////////////////////////////////////////////////////////////////
 
 Changelog:
-v1.0 (January 20th, 2024) - initial public release
+v1.0.1 (May 10th, 2024) - suite of changes made to boost performance and increase compatibility with GNUOctave
+v1.0.0 (January 20th, 2024) - initial public release
 
 /////////////////////////////////////////////////////////////////////
 
