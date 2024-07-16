@@ -29,15 +29,14 @@ sinth = sin(sys2.theta).';
 % Find control point coords in CS of all panels
 xp = xt.*costh + yt.*sinth;
 yp = -xt.*sinth + yt.*costh;
-x2 = sqrt(sys2.dx.^2 + sys2.dy.^2).'; % 1-by-M2
+x2 = repmat(sqrt(sys2.dx.^2 + sys2.dy.^2).',size(xp,1),1); % M1-by-M2
 
 % Find theta1, theta2, r1, r2
 theta1 = atan2(yp,xp);
 theta2 = atan2(yp,xp-x2);
 dtheta = theta2 - theta1; % precompute
-if isequal(sys1.id,sys2.id)
-    dtheta(logical(eye(M1))) = D; % fix angular difference for self-induction
-end
+k = (abs(yp) < 10*eps(1)) & (xp > 0) & (xp < x2);
+dtheta(k) = D; % fix angular difference for self-induction
 
 r1 = sqrt(xp.^2 + yp.^2);
 r2 = sqrt((xp-x2).^2 + yp.^2);
