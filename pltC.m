@@ -16,21 +16,37 @@ function graf = pltC(surfaces,foil,wake,opts)
         initmsh();
 
         % Define area of interest
-        node = [xmax+ch/2, ymax+ch/4;
+        node = [xmax+ch  , ymax+ch/4;
                 xmin-ch/2, ymax+ch/4;
-                xmin-ch/2, ymin-ch/4;
-                xmax+ch/2, ymin-ch/4];
+                xmin-ch/2, ymin-ch/2;
+                xmax+ch  , ymin-ch/2];
 
         % Place evaluation points barely outside the boundary because
         % exact boundary evaluation is unstable
         bubble = repmat({[]},1,nSurf); % the neighborhood of points near the solid surfaces
         m0 = 0;
         for i = 1:nSurf
-            bubble{i} = offsetBoundary(surfaces{i},foil.theta((1:foil.m(i))+m0),1e-4);
+            bubble{i} = offsetBoundary(surfaces{i},foil.theta((1:foil.m(i))+m0),5e-5);
             m0 = m0 + foil.m(i);
         end
 
-        % Add airfoils to the boundary nodes
+        % Get only the wake points relevant to the view area
+        i = (wake.xo < xmax+ch/2) & (wake.yo > ymin-ch/4);
+        % Set lower wake evaluation points also offset from exact boundary
+        j = find(i(1:N));
+        j(end+1) = j(end) + 1; % add point that crosses outside domain
+        wkl = [wake.xo(j) wake.yo(j)];
+        bubble{1} = cat(1,bubble{1}(1,:) - wkl(1,:) + flipud(wkl), ...
+                        bubble{1}(2:end-1,:), ...
+                        bubble{1}(end,:) - wkl(1,:) + wkl);
+        % Repeat for upper wake
+        j = find(i(N+1:2*N)) + N;
+        j(end+1) = j(end) + 1;
+        wku = [wake.xo(j) wake.yo(j)];
+        bubble{2} = cat(1,bubble{2}(1,:) - wku(1,:) + flipud(wku), ...
+                        bubble{2}(2:end-1,:), ...
+                        bubble{2}(end,:) - wku(1,:) + wku);
+
         node = cat(1,node,bubble{:});
 
         % Create adjacency matrix to track edges
@@ -43,49 +59,17 @@ function graf = pltC(surfaces,foil,wake,opts)
             len = len + r;
         end
 
-%        [node(:,1),k] = sort(node(:,1));
-%        node(:,2) = node(k,2);
-%        M = M(k,:);
-
         index = repmat((1:len).',1,len);
         edge = reshape(index(M),[2 len]).';
-
-%        [edge(:,1),k] = sort(edge(:,1));
-%        edge(:,2) = edge(k,2);
 
         % Mesh generation
         opts.kind = 'delfront';
         opts.rho2 = 1;
         [vert,etri,tria,tnum] = refine2(node,edge,[],opts);
 
-        % Insert wake
-        % Get only the wake points relevant to the view area
-        i = (wake.xo < xmax+ch/2) & (wake.yo > ymin-ch/4);
-
-        % Set lower wake evaluation points also offset from exact boundary
-        j = find(i(1:N));
-        j(end+1) = j(end) + 1; % add point that crosses outside domain
-        wkl = interp1(1:8:8*(length(j)-1)+1,[wake.xo(j) wake.yo(j)],1:8*(length(j)-1)+1);
-
-        % Repeat for upper wake
-        j = find(i(N+1:2*N)) + N;
-        j(end+1) = j(end) + 1;
-        wku = interp1(1:8:8*(length(j)-1)+1,[wake.xo(j) wake.yo(j)],1:8*(length(j)-1)+1);
-
-        wk = [bubble{1}(1,:) - wkl(1,:) + flipud(wkl);
-              bubble{1}(end,:) - wkl(1,:) + wkl;
-              bubble{2}(1,:) - wku(1,:) + flipud(wku);
-              bubble{2}(end,:) - wku(1,:) + wku];
-
-        % Remove instabilities in the shear layer
-        [in,on] = inpoly2(vert,wk(1:2*size(wkl,1),:),[1:2*size(wkl,1);2:2*size(wkl,1) 1].');
-        vert(in|on,:) = [];
-        [in,on] = inpoly2(vert,wk(2*size(wkl,1)+(1:2*size(wku,1)),:),[1:2*size(wku,1);2:2*size(wku,1) 1].');
-        vert(in|on,:) = [];
-
         % Evaluate velocities at the mesh vertices
-        field.xc = [vert(:,1); wk(:,1)];
-        field.yc = [vert(:,2); wk(:,2)];
+        field.xc = vert(:,1);
+        field.yc = vert(:,2);
         field.dx = ones(size(field.xc));    % Grid points are the control points
         field.dy = zeros(size(field.xc));   % of the influence calculation.
         field.xo = field.xc - 0.5;          % They are placed at the center of
@@ -95,17 +79,16 @@ function graf = pltC(surfaces,foil,wake,opts)
         field.id = 'mesh';
 
         [A1,B1] = influence(field,foil);
-        [A2,B2] = influence(field,wake);
+        [A2,B2] = influence(field,wake,0);
 
         u = B1*foil.G + B2*wake.G + 1;
         v = A1*foil.G + A2*wake.G;
 
         % Make contour plot
-        DT = delaunay(field.xc,field.yc);
-        patch(field.xc(DT).',field.yc(DT).',sqrt(u(DT).^2+v(DT).^2).','LineStyle','none')
-        if strcmpi(opts.mesh,'on'), triplot(DT,field.xc,field.yc,'k-'); end
-        for i = 1:nSurf
-            fill(surfaces{i}(:,1),surfaces{i}(:,2),[1 1 1])
+        if strcmpi(opts.mesh,'on')
+            trisurf(tria,vert(:,1),vert(:,2),sqrt(u.^2+v.^2).','LineStyle','-','FaceColor','interp')
+        else
+            trisurf(tria,vert(:,1),vert(:,2),sqrt(u.^2+v.^2).','LineStyle','none','FaceColor','interp')
         end
         daspect([1 1 1])
         cm = Colormap;

@@ -16,7 +16,7 @@ for i = length(surfaceFiles):-1:1
 end
 
 options = wakeoptset(Wakesolver,'FunctionTolerance',1e-6,'Display','iter');
-[Cl,Cd,Cp,xc] = Panel2D(surfaces,alpha,CT,options,'Plot','stream');
+[Cl,Cd,Cp,xc] = Panel2D(surfaces,alpha,CT,options,'Plot','contour');
 
 figure
 hold on
