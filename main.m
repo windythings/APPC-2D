@@ -7,7 +7,7 @@ CT = 1.3; % 0.46;
 
 surfaceFiles{1} = sprintf('Airfoils/ONR-Coords/mainVec%d.dat',vecAng);
 surfaceFiles{2} = sprintf('Airfoils/ONR-Coords/nacelleVec%d.dat',vecAng);
-% surfaceFiles{3} = 'Airfoils/ONR-Coords/krueger.dat';
+surfaceFiles{3} = 'Airfoils/ONR-Coords/krueger.dat';
 
 for i = length(surfaceFiles):-1:1
     fileID = fopen(surfaceFiles{i});
@@ -16,7 +16,7 @@ for i = length(surfaceFiles):-1:1
 end
 
 options = wakeoptset(Wakesolver,'FunctionTolerance',1e-6,'Display','iter');
-[Cl,Cd,Cp,xc] = Panel2D(surfaces,alpha,CT,options,'Plot','contour');
+[Cl,Cd,Cp,xc] = Panel2D(surfaces,alpha,CT,options,'Plot','contour','Colormap','cork');
 
 figure
 hold on
