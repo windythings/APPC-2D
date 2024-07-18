@@ -101,8 +101,8 @@ function graf = pltC(surfaces,foil,wake,opts)
     if strcmpi(opts.plot,'stream')
         % Draws streamlines in the flow
         % The grid must be meshgrid-like, but some optimizations were made
-        x = [(cos(linspace(pi/2,pi/40,20))-1).'*ch/2+xmin; uniquetol(foil.xo,5.5e-3); (cos(linspace(pi,21*pi/40,20))+1).'*ch/2+xmax];
-        y = [(cos(linspace(pi/2,pi/20,10))-1).'*ch/4+ymin; uniquetol(foil.yo,2.5e-2); (cos(linspace(pi,11*pi/20,10))+1).'*ch/4+ymax];
+        x = [(cos(linspace(pi/2,pi/40,20))-1).'*ch/2+xmin; uniquetol(foil.xo,5.5e-3); (cos(linspace(39*pi/40,pi/2,20))+1).'*ch/2+xmax];
+        y = [(cos(linspace(pi/2,pi/20,10))-1).'*ch/4+ymin; uniquetol(foil.yo,2.5e-2); (cos(linspace(19*pi/20,pi/2,10))+1).'*ch/4+ymax];
         [X,Y] = meshgrid(x,y);
         field.xc = X(:);
         field.yc = Y(:);
@@ -114,7 +114,7 @@ function graf = pltC(surfaces,foil,wake,opts)
         field.m = length(field.xc);
         field.id = 'mesh';
         [A1,B1] = influence(field,foil);
-        [A2,B2] = influence(field,wake);
+        [A2,B2] = influence(field,wake,0);
         u = B1*foil.G + B2*wake.G + 1;
         v = A1*foil.G + A2*wake.G;
         for i = 1:nSurf
