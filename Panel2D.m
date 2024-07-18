@@ -38,6 +38,14 @@ alpha = alphaDeg*pi/180;
 CHORD = surfaces{1}(1,1) - min(surfaces{1}(:,1));
 nSurf = length(surfaces);
 
+bwidx = find(surfaces{1}(:,1)<0.8, 1, 'last' );
+twidx = find(surfaces{2}(:,1)<0.8, 1, 'first');
+Afun(:,1) = linspace(0.8,min(surfaces{1}(1,1),surfaces{2}(1,1)),151);
+Afun(:,2) = interp1(surfaces{2}(1:twidx,1),surfaces{2}(1:twidx,2),Afun(:,1)) ...
+            - interp1(surfaces{1}(bwidx:end,1),surfaces{1}(bwidx:end,2),Afun(:,1));
+bwcx = 0.5*(surfaces{1}(bwidx+1:end-1,1) + surfaces{1}(bwidx+2:end,1));
+twcx = 0.5*(surfaces{2}(1:twidx-2,1) + surfaces{2}(2:twidx-1,1));
+
 % Rotate surfaces coordinates by the requested angle of attack
 for i = 1:nSurf
     surfaces{i} = surfaces{i}*[cos(alpha) -sin(alpha);sin(alpha) cos(alpha)];
@@ -96,6 +104,13 @@ wake.G = [Ginf+zeros(N+1,1); -Ginf+zeros(N+1,1)];
 
 % Extract results from the solution
 Qtan = B*foil.G + BB*wake.G + cos(foil.theta); % surface tangent velocity
+
+V = CT./wake.G;
+mdot = V(N+1)*(wake.yc(2*N) - wake.yc(N));
+Vnoz = mdot./Afun(:,2);
+Qtan(bwidx+1:foil.m(1)) = interp1(Afun(:,1),Vnoz,bwcx,'linear','extrap');
+Qtan(foil.m(1)+(1:twidx-2)) = interp1(Afun(:,1),Vnoz,twcx,'linear','extrap');
+
 Cp = 1 - Qtan.^2;
 Cl = -Cp.'*foil.dx;
 Cd = Cp.'*foil.dy;
