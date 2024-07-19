@@ -35,7 +35,7 @@ x2 = repmat(sqrt(sys2.dx.^2 + sys2.dy.^2).',size(xp,1),1); % M1-by-M2
 theta1 = atan2(yp,xp);
 theta2 = atan2(yp,xp-x2);
 dtheta = theta2 - theta1; % precompute
-k = (abs(yp) < 10*eps(1)) & (xp > 0) & (xp < x2);
+k = (abs(yp) < 10*eps(1000)) & (xp > 0) & (xp < x2);
 dtheta(k) = D; % fix angular difference for self-induction
 
 r1 = sqrt(xp.^2 + yp.^2);

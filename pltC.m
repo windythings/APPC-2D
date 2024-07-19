@@ -30,22 +30,24 @@ function graf = pltC(surfaces,foil,wake,opts)
             m0 = m0 + foil.m(i);
         end
 
-        % Get only the wake points relevant to the view area
-        i = (wake.xo < xmax+ch/2) & (wake.yo > ymin-ch/4);
-        % Set lower wake evaluation points also offset from exact boundary
-        j = find(i(1:N));
-        j(end+1) = j(end) + 1; % add point that crosses outside domain
-        wkl = [wake.xo(j) wake.yo(j)];
-        bubble{1} = cat(1,bubble{1}(1,:) - wkl(1,:) + flipud(wkl), ...
-                        bubble{1}(2:end-1,:), ...
-                        bubble{1}(end,:) - wkl(1,:) + wkl);
-        % Repeat for upper wake
-        j = find(i(N+1:2*N)) + N;
-        j(end+1) = j(end) + 1;
-        wku = [wake.xo(j) wake.yo(j)];
-        bubble{2} = cat(1,bubble{2}(1,:) - wku(1,:) + flipud(wku), ...
-                        bubble{2}(2:end-1,:), ...
-                        bubble{2}(end,:) - wku(1,:) + wku);
+        if length(wake.m) == 2
+            % Get only the wake points relevant to the view area
+            i = (wake.xo < xmax+ch/2) & (wake.yo > ymin-ch/4);
+            % Set lower wake evaluation points also offset from exact boundary
+            j = find(i(1:N));
+            j(end+1) = j(end) + 1; % add point that crosses outside domain
+            wkl = [wake.xo(j) wake.yo(j)];
+            bubble{1} = cat(1,bubble{1}(1,:) - wkl(1,:) + flipud(wkl), ...
+                            bubble{1}(2:end-1,:), ...
+                            bubble{1}(end,:) - wkl(1,:) + wkl);
+            % Repeat for upper wake
+            j = find(i(N+1:2*N)) + N;
+            j(end+1) = j(end) + 1;
+            wku = [wake.xo(j) wake.yo(j)];
+            bubble{2} = cat(1,bubble{2}(1,:) - wku(1,:) + flipud(wku), ...
+                            bubble{2}(2:end-1,:), ...
+                            bubble{2}(end,:) - wku(1,:) + wku);
+        end
 
         node = cat(1,node,bubble{:});
 
@@ -76,13 +78,15 @@ function graf = pltC(surfaces,foil,wake,opts)
         field.yo = field.yc;                % flat panels with unit length.
         field.theta = zeros(size(field.xc));
         field.m = length(field.xc);
-        field.id = 'mesh';
 
         [A1,B1] = influence(field,foil);
-        [A2,B2] = influence(field,wake,0);
-
-        u = B1*foil.G + B2*wake.G + 1;
-        v = A1*foil.G + A2*wake.G;
+        u = B1*foil.G + 1;
+        v = A1*foil.G;
+        if length(wake.m) == 2
+            [A2,B2] = influence(field,wake,0);
+            u = u + B2*wake.G;
+            v = v + A2*wake.G;
+        end
 
         % Make contour plot
         if strcmpi(opts.mesh,'on')
@@ -112,11 +116,14 @@ function graf = pltC(surfaces,foil,wake,opts)
         field.yo = field.yc;
         field.theta = zeros(size(field.xc));
         field.m = length(field.xc);
-        field.id = 'mesh';
         [A1,B1] = influence(field,foil);
-        [A2,B2] = influence(field,wake,0);
-        u = B1*foil.G + B2*wake.G + 1;
-        v = A1*foil.G + A2*wake.G;
+        u = B1*foil.G + 1;
+        v = A1*foil.G;
+        if length(wake.m) == 2
+            [A2,B2] = influence(field,wake,0);
+            u = u + B2*wake.G;
+            v = v + A2*wake.G;
+        end
         for i = 1:nSurf
             in = inpolygon(X,Y,surfaces{i}(:,1),surfaces{i}(:,2));
             u(in) = 0;
@@ -125,24 +132,26 @@ function graf = pltC(surfaces,foil,wake,opts)
         lineobj = streamline(X, Y, reshape(u,size(X)), reshape(v,size(X)), ...
             [zeros(1,59) (0:19)*ch/40] + x(1), ...
             [(59:-1:1)/60*(y(end)-y(1)) zeros(1,20)] + y(1));
-        cnt = 0;
-        for i = 1:length(lineobj)
-            % Identify and set style for streamlines in the jet flow
-            XYData = get(lineobj(i),{'XData','YData'});
-            [in,on] = inpolygon(XYData{1}(end),XYData{2}(end), ...
-                wake.xo([(1:N) (2*N:-1:N+1)]),wake.yo([(1:N) (2*N:-1:N+1)]));
-            if in || on
-                set(lineobj(i),'Color',[0.8353 0.3686 0],'LineStyle','--');
-                cnt = cnt + 1;
-                wline = i;
+        if length(wake.m) == 2
+            cnt = 0;
+            for i = 1:length(lineobj)
+                % Identify and set style for streamlines in the jet flow
+                XYData = get(lineobj(i),{'XData','YData'});
+                [in,on] = inpolygon(XYData{1}(end),XYData{2}(end), ...
+                    wake.xo([(1:N) (2*N:-1:N+1)]),wake.yo([(1:N) (2*N:-1:N+1)]));
+                if in || on
+                    set(lineobj(i),'Color',[0.8353 0.3686 0],'LineStyle','--');
+                    cnt = cnt + 1;
+                    wline = i;
+                end
             end
-        end
-        % Reduce density of streamlines outside of the jet streamtube
-        for i = wline-cnt-1:-2:1
-            set(lineobj(i),'LineStyle','none');
-        end
-        for i = wline+2:2:length(lineobj)
-            set(lineobj(i),'LineStyle','none');
+            % Reduce density of streamlines outside of the jet streamtube
+            for i = wline-cnt-1:-2:1
+                set(lineobj(i),'LineStyle','none');
+            end
+            for i = wline+2:2:length(lineobj)
+                set(lineobj(i),'LineStyle','none');
+            end
         end
         % Plot airfoil surfaces on top
         for i = 1:nSurf

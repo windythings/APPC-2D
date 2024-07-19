@@ -38,21 +38,12 @@ alpha = alphaDeg*pi/180;
 CHORD = surfaces{1}(1,1) - min(surfaces{1}(:,1));
 nSurf = length(surfaces);
 
-bwidx = find(surfaces{1}(:,1)<0.8, 1, 'last' );
-twidx = find(surfaces{2}(:,1)<0.8, 1, 'first');
-Afun(:,1) = linspace(0.8,min(surfaces{1}(1,1),surfaces{2}(1,1)),151);
-Afun(:,2) = interp1(surfaces{2}(1:twidx,1),surfaces{2}(1:twidx,2),Afun(:,1)) ...
-            - interp1(surfaces{1}(bwidx:end,1),surfaces{1}(bwidx:end,2),Afun(:,1));
-bwcx = 0.5*(surfaces{1}(bwidx+1:end-1,1) + surfaces{1}(bwidx+2:end,1));
-twcx = 0.5*(surfaces{2}(1:twidx-2,1) + surfaces{2}(2:twidx-1,1));
-
 % Rotate surfaces coordinates by the requested angle of attack
 for i = 1:nSurf
     surfaces{i} = surfaces{i}*[cos(alpha) -sin(alpha);sin(alpha) cos(alpha)];
     foil.m(i) = size(surfaces{i},1) - 1; % number of panels in each surface
 end
 M = sum(foil.m); % total number of panels in the airfoil system
-foil.id = 'airfoil';
 foil.xo = zeros(M,1);
 foil.yo = zeros(M,1);
 foil.dx = zeros(M,1);
@@ -80,40 +71,40 @@ foil.theta = atan2(foil.dy,foil.dx);
 [AIC(1:M,:),B] = influence(foil,foil);
 RHS = [sin(foil.theta); zeros(nSurf,1)];
 
-Ginf = sqrt(2*CT + 1) - 1; % far downstream wake circulation
-N = wakeoptions.NumPanels; % number of panels per wake
+if CT == 0
+    foil.G = AIC \ RHS;
+    Qtan = B*foil.G + cos(foil.theta);
+    wake.m = wakeoptions.NumPanels;
+else
+    Ginf = sqrt(2*CT + 1) - 1; % far downstream wake circulation
+    N = wakeoptions.NumPanels; % number of panels per wake
 
-% Attach wakes to the interior TE points where the last panel on each wake
-% has constant circulation strength Ginf and extends to downstream infinity
-wakeEnd = surfaces{1}(end,1) + CHORD*wakeoptions.WakeLengthChords;
-wake.id = 'wake';
-wake.m = [N N];
-wake.xo = [linspace(surfaces{1}(end,1),wakeEnd,N) linspace(surfaces{2}(1,1),wakeEnd,N)].';
-wake.dx = [diff(wake.xo(1:N)); 999; diff(wake.xo(N+1:2*N)); 999];
-wake.xc = wake.xo + 0.5*wake.dx;
-% Initial wake shapes are flat sheets
-wake.yo = [surfaces{1}(end,2)+zeros(N,1); surfaces{2}(1,2)+zeros(N,1)];
-wake.dy = zeros(size(wake.xo));
-wake.yc = wake.yo;
-wake.theta = zeros(size(wake.xo));
-% Initial wake circulation
-wake.G = [Ginf+zeros(N+1,1); -Ginf+zeros(N+1,1)];
+    % Attach wakes to the interior TE points where the last panel on each wake
+    % has constant circulation strength Ginf and extends to downstream infinity
+    wakeEnd = surfaces{1}(end,1) + CHORD*wakeoptions.WakeLengthChords;
+    wake.m = [N N];
+    wake.xo = [linspace(surfaces{1}(end,1),wakeEnd,N) linspace(surfaces{2}(1,1),wakeEnd,N)].';
+    wake.dx = [diff(wake.xo(1:N)); 999; diff(wake.xo(N+1:2*N)); 999];
+    wake.xc = wake.xo + 0.5*wake.dx;
+    % Initial wake shapes are flat sheets
+    wake.yo = [surfaces{1}(end,2)+zeros(N,1); surfaces{2}(1,2)+zeros(N,1)];
+    wake.dy = zeros(size(wake.xo));
+    wake.yc = wake.yo;
+    wake.theta = zeros(size(wake.xo));
+    % Initial wake circulation
+    wake.G = [Ginf+zeros(N+1,1); -Ginf+zeros(N+1,1)];
 
-% Solve for the wake shape and global circulation solution
-[foil.G,wake,BB] = solvewake(wakeoptions,wake,foil,inv(AIC),RHS,CHORD);
+    % Solve for the wake shape and global circulation solution
+    [foil.G,wake,BB] = solvewake(wakeoptions,wake,foil,inv(AIC),RHS,CHORD);
 
-% Extract results from the solution
-Qtan = B*foil.G + BB*wake.G + cos(foil.theta); % surface tangent velocity
-
-V = CT./wake.G;
-mdot = V(N+1)*(wake.yc(2*N) - wake.yc(N));
-Vnoz = mdot./Afun(:,2);
-Qtan(bwidx+1:foil.m(1)) = interp1(Afun(:,1),Vnoz,bwcx,'linear','extrap');
-Qtan(foil.m(1)+(1:twidx-2)) = interp1(Afun(:,1),Vnoz,twcx,'linear','extrap');
+    % Extract results from the solution
+    Qtan = B*foil.G + BB*wake.G + cos(foil.theta); % surface tangent velocity
+end
 
 Cp = 1 - Qtan.^2;
 Cl = -Cp.'*foil.dx;
 Cd = Cp.'*foil.dy;
+
 % Package output where each cell contains data for one surface
 Cp = mat2cell(Cp,foil.m);
 xc = mat2cell(foil.xc*cos(alpha)-foil.yc*sin(alpha),foil.m); % undo AOA rotation
