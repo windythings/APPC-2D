@@ -83,6 +83,8 @@ else
     % has constant circulation strength Ginf and extends to downstream infinity
     wakeEnd = surfaces{1}(end,1) + CHORD*wakeoptions.WakeLengthChords;
     wake.m = [N N];
+%    c_x = (wakeEnd-[surfaces{1}(end,1) surfaces{2}(1,1)]).*(1-cos(linspace(0,pi/2,N).')) + [surfaces{1}(end,1) surfaces{2}(1,1)];
+%    wake.xo = c_x(:);
     wake.xo = [linspace(surfaces{1}(end,1),wakeEnd,N) linspace(surfaces{2}(1,1),wakeEnd,N)].';
     wake.dx = [diff(wake.xo(1:N)); 999; diff(wake.xo(N+1:2*N)); 999];
     wake.xc = wake.xo + 0.5*wake.dx;
