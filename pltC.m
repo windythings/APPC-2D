@@ -16,37 +16,18 @@ function graf = pltC(surfaces,foil,wake,opts)
         initmsh();
 
         % Define area of interest
-        node = [xmax+ch  , ymax+ch/4;
+        node = [xmax+ch/2, ymax+ch/4;
                 xmin-ch/2, ymax+ch/4;
-                xmin-ch/2, ymin-ch/2;
-                xmax+ch  , ymin-ch/2];
+                xmin-ch/2, ymin-ch/4;
+                xmax+ch/2, ymin-ch/4];
 
         % Place evaluation points barely outside the boundary because
         % exact boundary evaluation is unstable
         bubble = repmat({[]},1,nSurf); % the neighborhood of points near the solid surfaces
         m0 = 0;
         for i = 1:nSurf
-            bubble{i} = offsetBoundary(surfaces{i},foil.theta((1:foil.m(i))+m0),5e-5);
+            bubble{i} = offsetBoundary(surfaces{i},foil.theta((1:foil.m(i))+m0),1e-5);
             m0 = m0 + foil.m(i);
-        end
-
-        if length(wake.m) == 2
-            % Get only the wake points relevant to the view area
-            i = (wake.xo < xmax+ch/2) & (wake.yo > ymin-ch/4);
-            % Set lower wake evaluation points also offset from exact boundary
-            j = find(i(1:N));
-            j(end+1) = j(end) + 1; % add point that crosses outside domain
-            wkl = [wake.xo(j) wake.yo(j)];
-            bubble{1} = cat(1,bubble{1}(1,:) - wkl(1,:) + flipud(wkl), ...
-                            bubble{1}(2:end-1,:), ...
-                            bubble{1}(end,:) - wkl(1,:) + wkl);
-            % Repeat for upper wake
-            j = find(i(N+1:2*N)) + N;
-            j(end+1) = j(end) + 1;
-            wku = [wake.xo(j) wake.yo(j)];
-            bubble{2} = cat(1,bubble{2}(1,:) - wku(1,:) + flipud(wku), ...
-                            bubble{2}(2:end-1,:), ...
-                            bubble{2}(end,:) - wku(1,:) + wku);
         end
 
         node = cat(1,node,bubble{:});
@@ -65,9 +46,51 @@ function graf = pltC(surfaces,foil,wake,opts)
         edge = reshape(index(M),[2 len]).';
 
         % Mesh generation
-        opts.kind = 'delfront';
-        opts.rho2 = 1;
-        [vert,etri,tria,tnum] = refine2(node,edge,[],opts);
+        olfs.dhdx = 0.15;
+        [vlfs,tlfs,hlfs] = lfshfn2(node,edge,[],olfs);
+        [slfs] = idxtri2(vlfs,tlfs);
+        hfun = @trihfn2;
+        [vert,etri,tria,tnum] = refine2(node,edge,[],[],hfun,vlfs,tlfs,slfs,hlfs);
+        % [vert,etri,tria,tnum] = refine2(node,edge);
+
+        if length(wake.m) == 2
+            nss = 16; % Number of supersampled points on each wake segment
+
+            % Get only the wake points relevant to the view area
+            i = (wake.xo < xmax+ch/2) & (wake.yo > ymin-ch/4);
+
+            % Set lower wake evaluation points also offset from exact boundary
+            j = find(i(1:N));
+            j(end+1) = j(end) + 1; % add point that crosses outside domain
+
+            wk = [wake.xo(j) wake.yo(j)];
+            wk1 = [bubble{1}(1,:)-wk(1,:)+wk bubble{1}(end,:)-wk(1,:)+wk];
+            P1 = lineSegmentIntersect([wk1(1:end-1,1:2) wk1(2:end,1:2);wk1(1:end-1,3:4) wk1(2:end,3:4)], ...
+                [vert(tria,:) vert(tria(:,[2 3 1]),:)]);
+
+            dx = diff(wk(:,1)).*(0:nss-1)/nss;
+            dy = diff(wk(:,2)).*(0:nss-1)/nss;
+            P3 = [repmat(wk1(1:end-1,1:2),nss,1)+[dx(:) dy(:)];
+                  repmat(wk1(1:end-1,3:4),nss,1)+[dx(:) dy(:)]];
+
+            % Repeat for upper wake
+            j = find(i(N+1:2*N)) + N;
+            j(end+1) = j(end) + 1;
+
+            wk = [wake.xo(j) wake.yo(j)];
+            wk2 = [bubble{2}(1,:)-wk(1,:)+wk bubble{2}(end,:)-wk(1,:)+wk];
+            P2 = lineSegmentIntersect([wk2(1:end-1,1:2) wk2(2:end,1:2);wk2(1:end-1,3:4) wk2(2:end,3:4)], ...
+                [vert(tria,:) vert(tria(:,[2 3 1]),:)]);
+
+            dx = diff(wk(:,1)).*(0:nss-1)/nss;
+            dy = diff(wk(:,2)).*(0:nss-1)/nss;
+            P4 = [repmat(wk2(1:end-1,1:2),nss,1)+[dx(:) dy(:)];
+                  repmat(wk2(1:end-1,3:4),nss,1)+[dx(:) dy(:)]];
+            
+            % Add new points to the vertex list and triangulate
+            vert = [vert; P1; P2; P3; P4];
+            tria = delaunay(vert);
+        end
 
         % Evaluate velocities at the mesh vertices
         field.xc = vert(:,1);
@@ -89,10 +112,12 @@ function graf = pltC(surfaces,foil,wake,opts)
         end
 
         % Make contour plot
-        if strcmpi(opts.mesh,'on')
-            trisurf(tria,vert(:,1),vert(:,2),sqrt(u.^2+v.^2).','LineStyle','-','FaceColor','interp')
-        else
-            trisurf(tria,vert(:,1),vert(:,2),sqrt(u.^2+v.^2).','LineStyle','none','FaceColor','interp')
+        linestyle = 'none'; % default
+        if strcmpi(opts.mesh,'on'), linestyle = '-'; end
+        trisurf(tria,vert(:,1),vert(:,2),sqrt(u.^2+v.^2).','LineStyle',linestyle,'FaceColor','interp')
+        for i = 1:nSurf
+            [vert,etri,tria,tnum] = refine2(surfaces{i}(1:end-1,:),[1:foil.m(i);2:foil.m(i) 1].');
+            trisurf(tria,vert(:,1),vert(:,2),20+zeros(size(vert,1),1),'LineStyle','none','FaceColor',[1 1 1])
         end
         daspect([1 1 1])
         cm = Colormap;
