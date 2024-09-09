@@ -37,6 +37,13 @@ for i = 1:length(wake)-1
                   (wake(i).endPoints(end-1,2)-wake(i).endPoints(end-2,2));
 end
 
+% Wake crossing correction
+xing = wake(2).endPoints(:,2)-wake(1).endPoints(:,2) > 0;
+
+if any(xing) && any(~xing)
+    wake(2).endPoints(:,2) = wake(1).endPoints(:,2) - (wake(1).endPoints(1,2)-wake(2).endPoints(1,2));
+end
+
 % Recalculate the wake centerline position
 wake(i+1).endPoints = (wake(i-1).endPoints+wake(i).endPoints)./2;
 
