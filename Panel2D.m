@@ -14,6 +14,7 @@ CT = 0;
 opts.plot = 'none';
 opts.colormap = 'vik';
 opts.mesh = 'off';
+opts.internalflow = 'off';
 wakeoptions = wakeoptset(Wakesolver);
 
 % Optional argument handling
@@ -32,6 +33,17 @@ if nargin > 2
     for i = 1+argflex:2:length(varargin)
         opts.(lower(varargin{i})) = varargin{i+1};
     end
+end
+
+if strcmpi(opts.internalflow,'on')
+    [x0(1),k(1)] = min(surfaces{1}(:,1)); % identify LE
+    [x0(2),k(2)] = min(surfaces{2}(:,1));
+    x1 = max(x0); % set LB to deepest LE
+    x2 = min(surfaces{1}(1,1),surfaces{2}(1,1)); % set UB to forwardmost TE
+    sz = [50 51];
+    x = linspace(x1,x2,sz(2));
+    LW = interp1(surfaces{1}(k(1):end,1),surfaces{1}(k(1):end,2),x);
+    UW = interp1(surfaces{2}(k(2):-1:1,1),surfaces{2}(k(2):-1:1,2),x);
 end
 
 alpha = alphaDeg*pi/180;
@@ -110,6 +122,44 @@ Cd = Cp.'*foil.dy;
 % Package output where each cell contains data for one surface
 Cp = mat2cell(Cp,foil.m);
 xc = mat2cell(foil.xc*cos(alpha)-foil.yc*sin(alpha),foil.m); % undo AOA rotation
+
+if strcmpi(opts.internalflow,'on')
+    XC = repmat(x,sz(1),1);
+    Y = (UW - LW).*linspace(0,1,sz(1)+1).' + LW;
+    h = diff(Y,1,1);
+    YC = Y(1:end-1,:) + 0.5*h;
+    tmp = reshape([XC YC],[],2)*[cos(alpha) -sin(alpha);sin(alpha) cos(alpha)];
+    duct.xc = tmp(:,1);
+    duct.yc = tmp(:,2);
+    % set remaining parameters
+    duct.m = length(duct.xc);
+    duct.xo = duct.xc - 0.5;
+    duct.yo = duct.yc;
+    duct.dx = ones(duct.m,1);
+    duct.dy = zeros(duct.m,1);
+    duct.theta = zeros(duct.m,1);
+
+    [A,B] = influence(duct,foil);
+    u = B*foil.G + 1;
+    v = A*foil.G;
+    prj = reshape(u*cos(alpha) - v*sin(alpha), sz);
+    mdot = sum(prj.*h,1);
+
+    figure;
+    subplot(2,1,1);
+    contourf(XC,YC,prj,200,'LineStyle','none');
+    if strcmpi(opts.mesh,'on')
+        hold on;
+        plot(XC,Y,'k');
+        plot(XC.',Y.','k');
+    end
+    daspect([1 1 1]);
+    xlim([x1 x2]);
+    subplot(2,1,2);
+    plot(x,mdot);
+    xlim([x1 x2]);
+    set(gcf,'Position',[300 200 560 600]);
+end
 
 if strcmpi(opts.plot,'none'), return; end
 pltC(surfaces,foil,wake,opts);
