@@ -124,6 +124,7 @@ Cp = mat2cell(Cp,foil.m);
 xc = mat2cell(foil.xc*cos(alpha)-foil.yc*sin(alpha),foil.m); % undo AOA rotation
 
 if strcmpi(opts.internalflow,'on')
+    X = repmat(x,sz(1)+1,1);
     XC = repmat(x,sz(1),1);
     Y = (UW - LW).*linspace(0,1,sz(1)+1).' + LW;
     h = diff(Y,1,1);
@@ -150,8 +151,8 @@ if strcmpi(opts.internalflow,'on')
     contourf(XC,YC,prj,200,'LineStyle','none');
     if strcmpi(opts.mesh,'on')
         hold on;
-        plot(XC,Y,'k');
-        plot(XC.',Y.','k');
+        plot(X,Y,'k');
+        plot(X.',Y.','k');
     end
     daspect([1 1 1]);
     xlim([x1 x2]);
