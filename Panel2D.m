@@ -47,11 +47,12 @@ if strcmpi(opts.internalflow,'on')
 end
 
 alpha = alphaDeg*pi/180;
-CHORD = surfaces{1}(1,1) - min(surfaces{1}(:,1));
+CHORD = 0;
 nSurf = length(surfaces);
 
 % Rotate surfaces coordinates by the requested angle of attack
 for i = 1:nSurf
+    CHORD = max(CHORD, surfaces{i}(1,1) - min(surfaces{i}(:,1)));
     surfaces{i} = surfaces{i}*[cos(alpha) -sin(alpha);sin(alpha) cos(alpha)];
     foil.m(i) = size(surfaces{i},1) - 1; % number of panels in each surface
 end
@@ -143,6 +144,11 @@ if strcmpi(opts.internalflow,'on')
     [A,B] = influence(duct,foil);
     u = B*foil.G + 1;
     v = A*foil.G;
+    if length(wake.m) == 2
+        [A2,B2] = influence(duct,wake,0);
+        u = u + B2*wake.G;
+        v = v + A2*wake.G;
+    end
     prj = reshape(u*cos(alpha) - v*sin(alpha), sz);
     mdot = sum(prj.*h,1);
 
