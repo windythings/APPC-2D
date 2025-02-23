@@ -1,9 +1,9 @@
-## `APPAC2D: Potential flow-based solver for airfoils with jet flow in MATLAB`
+## `APPC-2D: Potential flow-based solver for airfoils with jet flow in MATLAB`
 Authors: Himavath Jois, Alan S. Hong, Phillip J. Ansell
 
 Inquiries: hjois2@illinois.edu
 
-`APPAC2D` (**A**ero**P**ropulsive **PA**nel **C**ode in Two Dimensions) is a `MATLAB` / `OCTAVE`-based panel method that solves the linear small-disturbance Prandtl-Glauert equation for subsonic flow for single or multielement airfoil systems with or without an interacting jet flow.
+`APPC-2D` (**A**ero**P**ropulsive **P**anel **C**ode in Two Dimensions) is a `MATLAB` / `OCTAVE`-based panel method that solves the linear small-disturbance Prandtl-Glauert equation for subsonic flow for single or multielement airfoil systems with or without an interacting jet flow.
 
 <p align="center">
   <img src = "onr-cover.png">
