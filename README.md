@@ -3,13 +3,11 @@ Authors: Himavath Jois, Alan S. Hong, Phillip J. Ansell
 
 Inquiries: hjois2@illinois.edu
 
-`APPC-2D` (**A**ero**P**ropulsive **P**anel **C**ode in Two Dimensions) is a `MATLAB` / `OCTAVE`-based panel method that solves the linear small-disturbance Prandtl-Glauert equation for subsonic flow for single or multielement airfoil systems with or without an interacting jet flow.
+`APPC-2D` (**A**ero**P**ropulsive **P**anel **C**ode in Two Dimensions) is a `MATLAB` / `OCTAVE`-based panel method that calculates the performance of an aero-propulsive airfoil system by modeling the propulsive actuator as a set of powered wake boundaries emanating from the trailing edge of two airfoil surfaces. The details of the implementation are found in the comments of the code as well as in reference `[1]`.
 
 <p align="center">
   <img src = "onr-cover.png">
 </p>
-
-This code calculates the performance of an aero-propulsive airfoil system by modeling the propulsive actuator as a set of powered wake boundaries emanating from the trailing edge of two airfoil surfaces. The details of the implementation are found in the comments of the code as well as in reference `[1]`.
 
 ### `Changelog`
 * v2.1.0 (February 22nd, 2025) - added suite of data visualization tools including contour plotting and streamlines on unstructured triangular grids
