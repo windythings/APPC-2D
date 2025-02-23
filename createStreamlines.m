@@ -1,4 +1,4 @@
-function [uGrid,vGrid] = createStreamlines(xGrid,yGrid,surfaces,wake)
+function [uGrid,vGrid] = createStreamlines(xGrid,yGrid,surfaces,wake,dval)
 % createStreamlines Calculates the x and y velocities in the inertial frame
 % necessary to implement MATLAB's streamline function in the main solver.
 % Uses the Katz & Plotkin adapted algorithm (calcVelMatrices.m) to solve
@@ -10,6 +10,8 @@ function [uGrid,vGrid] = createStreamlines(xGrid,yGrid,surfaces,wake)
 %          wake - structure of all wake elements
 % Outputs: uGrid - x velocities on all the grid points defined
 %          vGrid - y velocities on all the grid points defined
+
+if nargin == 4; dval = pi; end
 
 % Create and "panel" a structure containing all the surfaces and wakes to be
 % passed into the K & P algorithm for calculations
@@ -30,7 +32,7 @@ end
 
 % Influence of wake  boundaries on domain grid
 for j = 1:length(wake)-1
-    [A_grid_wake,B_grid_wake] = calcVelMatricesFast(grid,wake(j));
+    [A_grid_wake,B_grid_wake] = calcVelMatricesFast(grid,wake(j),dval);
     V = V + A_grid_wake*wake(j).gamma;
     U = U + B_grid_wake*wake(j).gamma;
 end

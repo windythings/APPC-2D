@@ -10,7 +10,7 @@ vecAng = 0; % degrees
 
 surfaceFiles(1).name = sprintf('./Airfoils/ONR-Coords/nacelleVec%g.dat',vecAng);
 surfaceFiles(2).name = sprintf('./Airfoils/ONR-Coords/mainVec%g.dat',vecAng);
-% surfaceFiles(3).name = './Airfoils/ONR-Coords/krueger.dat';
+%surfaceFiles(3).name = './Airfoils/ONR-Coords/krueger.dat';
 
 % surfaceFiles(1).name = './Airfoils/NACA-643618/nacelle.dat'; % nacelle
 % surfaceFiles(2).name = './Airfoils/NACA-643618/airfoil.dat'; % airfoil
@@ -23,11 +23,16 @@ CT = 10; % non-dimensional thrust coefficient
 %% STREAMLINES/VECTORS
 f2 = figure(2);
 set(f2,'Position',[100 100 1000 800]);
-hold on;
+% Configure colormap
+cmap = crameri('vik');
+colormap(cmap);
+hold on; axis image off;
+% Place surfaces
 for i = 1:length(surfaces)
     plot(surfaces(i).endPoints(:,1),surfaces(i).endPoints(:,2),'k-');
 end
 
+% Grid vectors (if we want meshgrid-like plotting)
 xG = (-chord/2):0.1:(chord*3);
 yG = -chord*2:0.05:chord*2;
 
@@ -35,11 +40,26 @@ yG = -chord*2:0.05:chord*2;
 xStart = xG(1).*ones(length(yG),1);
 yStart = yG';
 
-[xGrid,yGrid] = meshgrid(xG,yG);
-[uGrid,vGrid] = createStreamlines(xGrid,yGrid,surfaces,wake);
+% Fetch data on a triangular mesh
+[VTX,TRI,uGrid,vGrid] = createTriData(surfaces,wake,chord);
 
-% Choose whether to plot streamlines or velocity vectors
-streamPlot = streamline(xGrid,yGrid,uGrid,vGrid,xStart,yStart);
+% Plot velocity magnitude contours
+patch('Faces',TRI,'Vertices',VTX, ...
+    'FaceVertexCData',sqrt(uGrid.^2+vGrid.^2), ...
+    'FaceColor','interp','EdgeColor','none');
+cl = get(gca,'CLim');
+set(gca,'CLim',max(abs(cl-1))*[-1 1]+1); % set to pivot about 1
+
+% Overlay streamlines
+streamPlot = tristream(TRI,VTX(:,1),VTX(:,2),uGrid,vGrid,xStart,yStart);
+for i = 1:numel(streamPlot)
+    plot(streamPlot(i).x,streamPlot(i).y,'-','Color',[.2 .2 .2]);
+end
+%streamPlot = streamline(xGrid,yGrid,uGrid,vGrid,xStart,yStart); % OLD MESHGRID
+
+% Use a meshgrid if we want quivers
+% [xGrid,yGrid] = meshgrid(xG,yG);
+% [uGrid,vGrid] = createStreamlines(xGrid,yGrid,surfaces,wake);
 % quiverPlot = quiver(xGrid,yGrid,uGrid,vGrid,'AutoScaleFactor',0.55,...
 %                                            'Color',[0 0.4470 0.7410]);
 

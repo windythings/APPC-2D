@@ -16,9 +16,9 @@ tempTang = zeros(length(controls.co),1);
 
 % Create two horizontal lines of farfield vorticity starting just aft of
 % the last wake point and ending "very far away," in this case, x/c = 1000.
-x1 = wake.endPoints(end,1);
-x2 = wake.endPoints(end,1)+999;
-y1 = wake.endPoints(end,2);
+[x1,iloc] = max(wake.endPoints(:,1));
+x2 = x1+999;
+y1 = wake.endPoints(iloc,2);
 
 gammaInf = wake.gammaInf;
 
