@@ -49,8 +49,8 @@ wakePlot1 = plot(wake(1).endPoints(:,1),wake(1).endPoints(:,2),'-',...
 wakePlot2 = plot(wake(2).endPoints(:,1),wake(2).endPoints(:,2),'-',...
                                       'Color',[0.8500 0.3250 0.0980]);
 
-xlabel('$$x/c$$','Interpreter','latex');
-ylabel('$$z/c$$','Interpreter','latex');
+xlabel('$x/c$','Interpreter','latex');
+ylabel('$z/c$','Interpreter','latex');
 axis([-chord/2 chord*3 -chord/2 chord/2]);
 axis equal;
 
@@ -124,8 +124,8 @@ fprintf('\nLift (Cp Dist): Cl = %1.4f\n',coeff(1));
 fprintf('1/4 Moment (Cp Dist): Cm_c/4 = %1.4f\n\n',Cm);
 
 axis([-0.2 chord*1.1 -15 2]);
-xlabel('$$x/c$$','Interpreter','latex');
-ylabel('$$C_p$$','Interpreter','latex');
-titleStr = "$\alpha=$" + alpha + "$^\circ$, $C_T=$" + CT;
-title(titleStr,'Interpreter','latex');
+xlabel('$x/c$','Interpreter','latex');
+ylabel('$C_p$','Interpreter','latex');
+%titleStr = "$\alpha=$" + alpha + "$^\circ$, $C_T=$" + CT;
+title(sprintf('$\\alpha=%g^\\circ,C_T=%g$',alpha,CT),'Interpreter','latex');
 

@@ -35,7 +35,6 @@ MAX_ITER = 30; % maximum iterations for wake shape loop calculation
 
 alpha = alphaDeg * pi/180;
 gammaInf = (sqrt(2*CT+1)-1);
-uBar0 = (CT./gammaInf).*ones(N_WAKE-1,1);
 
 %% Airfoil/Nacelle Panelling
 % Create initial surface struct containing all paneling details on the
@@ -55,9 +54,9 @@ wakeStart = [surfaces(1).endPoints(end,:);surfaces(2).endPoints(end,:)];
 wake = createWake(wakeStart,N_WAKE,chord,CHORD_MULTIPLIER,...
                                                  CHORDS_RAMP,WAKE_SPACING);
 
-% The wake is initialized to have the guessed average velocity.
-wake(1).uBar = uBar0;
-wake(2).uBar = uBar0;
+% The wake is initialized to have unit velocity.
+wake(1).uBar = ones(N_WAKE-1,1);
+wake(2).uBar = ones(N_WAKE-1,1);
 
 % The gamma vector is only used to calculate residuals. The current wake
 % gamma value is stored in the "wake" date structure.
@@ -66,7 +65,8 @@ gamma(1).lower = zeros(length(wake(2).uBar)+1,1);
 
 % Calculates the bound circulation to the wake, along with the decaying
 % vorticity down to gammaInf. No relaxation for this iteration.
-wake = wakeCirculation(wake,CT,chord,CHORD_MULTIPLIER,wakeStart,...
+% In this zeroth iteration, CT=gammaInf and uBar=1 so that CT/uBar=gammaInf
+wake = wakeCirculation(wake,gammaInf,chord,CHORD_MULTIPLIER,wakeStart,...
                                                         1,gamma,gammaInf);
 
 % Fill the "previous" (index 1) value of wake gammas for residual
@@ -90,6 +90,9 @@ axis equal;
 for i = 1:length(surfaces)
     plot(surfaces(i).endPoints(:,1),surfaces(i).endPoints(:,2),'k-');
 end
+wakePlot1 = plot(hAx,wake(1).endPoints(:,1),wake(1).endPoints(:,2),'r-');
+wakePlot2 = plot(hAx,wake(2).endPoints(:,1),wake(2).endPoints(:,2),'b-');
+wakePlot3 = plot(hAx,wake(3).endPoints(:,1),wake(3).endPoints(:,2),'g-');
 
 %% Iterative Scheme
 
@@ -99,17 +102,11 @@ end
 while (iter <= MAX_ITER) && (~toEnd)
     iter = iter + 1;
 
-    % Wake boundaries are re-plotted with each algorithm iteration,
-    % necissitating the previous iteration to be deleted.
-    if iter > 1
-        delete(wakePlot1);
-        delete(wakePlot2);
-        delete(wakePlot3);
-    end
-
-    wakePlot1 = plot(hAx,wake(1).endPoints(:,1),wake(1).endPoints(:,2),'r-');
-    wakePlot2 = plot(hAx,wake(2).endPoints(:,1),wake(2).endPoints(:,2),'b-');
-    wakePlot3 = plot(hAx,wake(3).endPoints(:,1),wake(3).endPoints(:,2),'g-');
+    % Wake boundaries are re-plotted with each algorithm iteration.
+    set(wakePlot1,'YData',wake(1).endPoints(:,2));
+    set(wakePlot2,'YData',wake(2).endPoints(:,2));
+    set(wakePlot3,'YData',wake(3).endPoints(:,2));
+    drawnow; % Creates "stop-motion animation" of wake shape moving
 
     % The iterative scheme performs the following steps to calculate the
     % final aero-propulsive solution.
@@ -139,10 +136,10 @@ while (iter <= MAX_ITER) && (~toEnd)
     gamma(2).upper = wake(1).gamma;
     gamma(2).lower = wake(2).gamma;
 
-    residualUpper = sum(abs(gamma(2).upper-gamma(1).upper)./...
-                                                (N_WAKE.*abs(gammaInf)));
-    residualLower = sum(abs(gamma(2).lower-gamma(1).lower)./...
-                                                (N_WAKE.*abs(gammaInf)));
+    residualUpper = sum(abs(gamma(2).upper-gamma(1).upper))./...
+                                                (N_WAKE.*abs(gammaInf)+eps);
+    residualLower = sum(abs(gamma(2).lower-gamma(1).lower))./...
+                                                (N_WAKE.*abs(gammaInf)+eps);
 
     gamma(1).upper = gamma(2).upper;
     gamma(1).lower = gamma(2).lower;
@@ -150,9 +147,6 @@ while (iter <= MAX_ITER) && (~toEnd)
     if (residualUpper < E_UP) && (residualLower < E_LO)
         toEnd = 1;
     end
-
-    % Creates "stop-motion animation" of wake shape moving
-    pause(0.005);
 end
 
 % After the iterative algorithm completes, the final wake position will

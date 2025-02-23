@@ -13,10 +13,10 @@ function [tempNorm,tempTang] = calcFarFieldInduction(controls,wake)
 
 tempNorm = zeros(length(controls.co),1);
 tempTang = zeros(length(controls.co),1);
- 
-% Create two horizontal lines of farfield vorticity starting just aft of 
+
+% Create two horizontal lines of farfield vorticity starting just aft of
 % the last wake point and ending "very far away," in this case, x/c = 1000.
-x1 = wake.endPoints(end,1)+0.0000001;
+x1 = wake.endPoints(end,1);
 x2 = wake.endPoints(end,1)+999;
 y1 = wake.endPoints(end,2);
 
@@ -38,8 +38,10 @@ tmpT = gammaInf./(2.*pi)*(theta2-theta1);
 tmpN = gammaInf./(4.*pi)*log(R2./R1);
 
 % Rotate each component vector into the local panel frame
-tempTang = cos(controls.theta).*tmpT + sin(controls.theta).*tmpN;
-tempNorm = -sin(controls.theta).*tmpT + cos(controls.theta).*tmpN;
-
+if isempty(controls.theta)
+    tempTang = tmpT; tempNorm = tmpN;
+else
+    tempTang = cos(controls.theta).*tmpT + sin(controls.theta).*tmpN;
+    tempNorm = -sin(controls.theta).*tmpT + cos(controls.theta).*tmpN;
 end
 

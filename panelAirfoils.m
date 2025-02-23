@@ -18,6 +18,9 @@ R = [cos(-alpha) -sin(-alpha); sin(-alpha) cos(-alpha)];
 
 for i = 1:length(surfaceFiles)
     coords = importdata(surfaceFiles(i).name);
+    if det(coords([2 end-1],:)-coords(1,:)) > 0
+        coords = flipud(coords); % method requires CW defined coordinates
+    end
 
     % Calculate the chord based on the main airfoil
     if i == mainSurfIndex
