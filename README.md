@@ -1,7 +1,7 @@
 ## `APPC-2D: Potential flow-based solver for airfoils with jet flow in MATLAB`
 Authors: Himavath Jois, Alan S. Hong, Phillip J. Ansell
 
-Inquiries: hjois2@illinois.edu
+Inquiries: alansh2@illinois.edu, hjois2@illinois.edu, ansell1@illinois.edu
 
 `APPC-2D` (**A**ero**P**ropulsive **P**anel **C**ode in Two Dimensions) is a `MATLAB` / `OCTAVE`-based panel method that calculates the performance of an aero-propulsive airfoil system by modeling the propulsive actuator as a set of powered wake boundaries emanating from the trailing edge of two airfoil surfaces. The details of the implementation are found in the comments of the code as well as in reference `[1]`.
 
@@ -31,7 +31,7 @@ This code is considered feature complete. There are currently no plans to develo
 ### `License`
 Published and distributed under the MIT Open License (LICENSE.txt).
 
-Copyright &copy; 2024 Himavath Jois, Alan S. Hong, Phillip J. Ansell.
+Copyright &copy; 2025 Himavath Jois, Alan S. Hong, Phillip J. Ansell.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
